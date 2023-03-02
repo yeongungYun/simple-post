@@ -8,7 +8,7 @@ import lombok.*;
 @ToString
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PostDetailResponse {
+public class PostDetail {
 
     private Long id;
     private String username;
@@ -16,7 +16,7 @@ public class PostDetailResponse {
     private String content;
 
     @Builder
-    public PostDetailResponse(Long id, String username, String title, String content) {
+    public PostDetail(Long id, String username, String title, String content) {
         this.id = id;
         this.username = username;
         this.title = title;

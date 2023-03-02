@@ -8,7 +8,7 @@ import lombok.*;
 @ToString
 @Getter
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PostRequest {
+public class PostWrite {
 
     private String username;
     private String rawPassword;
@@ -16,7 +16,7 @@ public class PostRequest {
     private String content;
 
     @Builder
-    public PostRequest(String username, String rawPassword, String title, String content) {
+    public PostWrite(String username, String rawPassword, String title, String content) {
         this.username = username;
         this.rawPassword = rawPassword;
         this.title = title;
