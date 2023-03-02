@@ -4,6 +4,7 @@ package com.posts.service;
 import com.posts.domain.Post;
 import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
+import com.posts.request.PasswordCheckRequest;
 import com.posts.request.PostRequest;
 import com.posts.response.PostDetailResponse;
 import jakarta.transaction.Transactional;
@@ -13,6 +14,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -22,6 +24,9 @@ class PostServiceTest {
 
     @Autowired
     private PostService postService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private PostRepository postRepository;
@@ -58,6 +63,7 @@ class PostServiceTest {
         // given
         Post post = Post.builder()
                 .username("test username")
+                .password(passwordEncoder.encode("test password"))
                 .title("test title")
                 .content("test content")
                 .build();
@@ -81,5 +87,51 @@ class PostServiceTest {
         // expected
         assertThatThrownBy(() -> postService.get(1_000L))
                 .isInstanceOf(NotFoundPostException.class);
+    }
+
+    @Test
+    @DisplayName("일치하는 비밀번호")
+    void correctPassword() {
+        // given
+        Post post = Post.builder()
+                .username("test username")
+                .password(passwordEncoder.encode("test password"))
+                .title("test title")
+                .content("test content")
+                .build();
+        postRepository.save(post);
+
+        // when
+        PasswordCheckRequest request = PasswordCheckRequest.builder()
+                .postId(post.getId())
+                .rawPassword("test password")
+                .build();
+        boolean result = postService.checkPassword(request);
+
+        // then
+        assertThat(result).isTrue();
+    }
+
+    @Test
+    @DisplayName("일치하지 않는 비밀번호")
+    void incorrectPassword() {
+        // given
+        Post post = Post.builder()
+                .username("test username")
+                .password(passwordEncoder.encode("test password"))
+                .title("test title")
+                .content("test content")
+                .build();
+        postRepository.save(post);
+
+        // when
+        PasswordCheckRequest request = PasswordCheckRequest.builder()
+                .postId(post.getId())
+                .rawPassword("incorrect password")
+                .build();
+        boolean result = postService.checkPassword(request);
+
+        // then
+        assertThat(result).isFalse();
     }
 }

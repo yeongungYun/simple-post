@@ -3,6 +3,7 @@ package com.posts.service;
 import com.posts.domain.Post;
 import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
+import com.posts.request.PasswordCheckRequest;
 import com.posts.request.PostRequest;
 import com.posts.response.PostDetailResponse;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class PostService {
     private final PasswordEncoder passwordEncoder;
 
     /**
-     * @param request 글 작성 요청 DTO
+     * @param request 글 작성 요청 dto
      * @return 저장된 게시글 id 리턴
      */
     public Long write(PostRequest request) {
@@ -37,12 +38,10 @@ public class PostService {
     /**
      *
      * @param id 조회할 게시글의 id
-     * @return 조회할 게시글 응답 DTO 리턴
-     * @exception NotFoundPostException 해당 id의 게시글이 없을경우 예외 발생
+     * @return 조회할 게시글 응답 dto 리턴
      */
     public PostDetailResponse get(Long id) {
-        Post post = postRepository.findById(id)
-                .orElseThrow(NotFoundPostException::new);
+        Post post = findEntity(id);
 
         return PostDetailResponse.builder()
                 .id(post.getId())
@@ -50,5 +49,26 @@ public class PostService {
                 .title(post.getTitle())
                 .content(post.getContent())
                 .build();
+    }
+
+    /**
+     * @param checkRequest 비밀번호 확인 dto
+     * @return 비밀번호가 일치하면 true, 일치하지 않으면 false 리턴
+     */
+    public boolean checkPassword(PasswordCheckRequest checkRequest) {
+        Long postId = checkRequest.getPostId();
+        Post post = findEntity(postId);
+        return passwordEncoder.matches(checkRequest.getRawPassword(), post.getPassword());
+    }
+
+    /**
+     *
+     * @param id
+     * @return 조회한 엔티티 리턴
+     * @exception NotFoundPostException 해당 id의 게시글이 없으면 예외 발생
+     */
+    private Post findEntity(Long id) throws NotFoundPostException {
+        return postRepository.findById(id)
+                .orElseThrow(NotFoundPostException::new);
     }
 }
