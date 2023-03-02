@@ -15,14 +15,17 @@ public class Post {
 
     private String username;
 
+    private String password;
+
     private String title;
 
     @Lob
     private String content;
 
     @Builder
-    public Post(String username, String title, String content) {
+    public Post(String username, String password, String title, String content) {
         this.username = username;
+        this.password = password;
         this.title = title;
         this.content = content;
     }

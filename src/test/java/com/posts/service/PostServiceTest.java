@@ -6,8 +6,9 @@ import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
 import com.posts.request.PostRequest;
 import com.posts.response.PostDetailResponse;
+import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
-import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,12 +26,18 @@ class PostServiceTest {
     @Autowired
     private PostRepository postRepository;
 
+    @AfterEach
+    void clean() {
+        postRepository.deleteAll();
+    }
+
     @Test
     @DisplayName("게시글 작성")
     void write() {
         // given
         PostRequest request = PostRequest.builder()
                 .username("test username")
+                .rawPassword("test password")
                 .title("test title")
                 .content("test content")
                 .build();
@@ -40,7 +47,6 @@ class PostServiceTest {
         long count = postRepository.count();
 
         // then
-        assertThat(postId).isEqualTo(1L);
         assertThat(count).isEqualTo(1L);
 
         log.info("postId={}", postId);
@@ -61,17 +67,19 @@ class PostServiceTest {
         PostDetailResponse response = postService.get(post.getId());
 
         // then
-        assertThat(response.getId()).isEqualTo(1L);
-        assertThat(response.getUsername()).isEqualTo("test username");
-        assertThat(response.getTitle()).isEqualTo("test title");
-        assertThat(response.getContent()).isEqualTo("test content");
+        assertThat(response.getId()).isEqualTo(post.getId());
+        assertThat(response.getUsername()).isEqualTo(post.getUsername());
+        assertThat(response.getTitle()).isEqualTo(post.getTitle());
+        assertThat(response.getContent()).isEqualTo(post.getContent());
+
+        log.info("response={}", response);
     }
 
     @Test
     @DisplayName("존재하지 않는 id 조회로 예외 발생")
     void getException() {
         // expected
-        assertThatThrownBy(() -> postService.get(1L))
+        assertThatThrownBy(() -> postService.get(1_000L))
                 .isInstanceOf(NotFoundPostException.class);
     }
 }

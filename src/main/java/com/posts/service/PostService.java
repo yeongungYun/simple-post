@@ -7,6 +7,7 @@ import com.posts.request.PostRequest;
 import com.posts.response.PostDetailResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Slf4j
@@ -16,12 +17,19 @@ public class PostService {
 
     private final PostRepository postRepository;
 
+    private final PasswordEncoder passwordEncoder;
+
     /**
-     * @param postRequest 글 작성 요청 DTO
+     * @param request 글 작성 요청 DTO
      * @return 저장된 게시글 id 리턴
      */
-    public Long write(PostRequest postRequest) {
-        Post post = postRequest.toEntity();
+    public Long write(PostRequest request) {
+        Post post = Post.builder()
+                        .username(request.getUsername())
+                        .password(passwordEncoder.encode(request.getRawPassword()))
+                        .title(request.getTitle())
+                        .content(request.getContent())
+                        .build();
         postRepository.save(post);
         return post.getId();
     }
