@@ -4,8 +4,10 @@ import com.posts.domain.Post;
 import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
 import com.posts.request.PasswordCheckRequest;
-import com.posts.request.PostRequest;
-import com.posts.response.PostDetailResponse;
+import com.posts.request.PostEdit;
+import com.posts.request.PostWrite;
+import com.posts.response.PostDetail;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -24,7 +26,7 @@ public class PostService {
      * @param request 글 작성 요청 dto
      * @return 저장된 게시글 id 리턴
      */
-    public Long write(PostRequest request) {
+    public Long write(PostWrite request) {
         Post post = Post.builder()
                         .username(request.getUsername())
                         .password(passwordEncoder.encode(request.getRawPassword()))
@@ -40,10 +42,10 @@ public class PostService {
      * @param id 조회할 게시글의 id
      * @return 조회할 게시글 응답 dto 리턴
      */
-    public PostDetailResponse get(Long id) {
+    public PostDetail get(Long id) {
         Post post = findEntity(id);
 
-        return PostDetailResponse.builder()
+        return PostDetail.builder()
                 .id(post.getId())
                 .username(post.getUsername())
                 .title(post.getTitle())
@@ -70,5 +72,13 @@ public class PostService {
     private Post findEntity(Long id) throws NotFoundPostException {
         return postRepository.findById(id)
                 .orElseThrow(NotFoundPostException::new);
+    }
+
+    public Long edit(PostEdit request) {
+        Post post = findEntity(request.getId());
+        post.updateTitle(request.getTitle());
+        post.updateContent(request.getContent());
+
+        return post.getId();
     }
 }

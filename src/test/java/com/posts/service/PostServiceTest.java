@@ -5,9 +5,9 @@ import com.posts.domain.Post;
 import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
 import com.posts.request.PasswordCheckRequest;
-import com.posts.request.PostRequest;
-import com.posts.response.PostDetailResponse;
-import jakarta.transaction.Transactional;
+import com.posts.request.PostEdit;
+import com.posts.request.PostWrite;
+import com.posts.response.PostDetail;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -40,7 +40,7 @@ class PostServiceTest {
     @DisplayName("게시글 작성")
     void write() {
         // given
-        PostRequest request = PostRequest.builder()
+        PostWrite request = PostWrite.builder()
                 .username("test username")
                 .rawPassword("test password")
                 .title("test title")
@@ -70,7 +70,7 @@ class PostServiceTest {
         postRepository.save(post);
 
         // when
-        PostDetailResponse response = postService.get(post.getId());
+        PostDetail response = postService.get(post.getId());
 
         // then
         assertThat(response.getId()).isEqualTo(post.getId());
@@ -133,5 +133,34 @@ class PostServiceTest {
 
         // then
         assertThat(result).isFalse();
+    }
+
+    @Test
+    @DisplayName("작성된 글의 제목과 내용 수정")
+    void edit() {
+        // given
+        Post post = Post.builder()
+                .username("test username")
+                .password(passwordEncoder.encode("test password"))
+                .title("test title")
+                .content("test content")
+                .build();
+        postRepository.save(post);
+
+        PostEdit postEdit = PostEdit.builder()
+                .id(post.getId())
+                .title("edited title")
+                .content("edited content")
+                .build();
+
+        // when
+        Long postId = postService.edit(postEdit);
+
+        // then
+        Post editedPost = postRepository.findById(postId).get();
+        assertThat(editedPost.getTitle()).isEqualTo("edited title");
+        assertThat(editedPost.getContent()).isEqualTo("edited content");
+
+        log.info("editedPost={}", editedPost);
     }
 }
