@@ -1,26 +1,39 @@
 package com.posts.service;
 
 import com.posts.domain.Post;
+import com.posts.exception.IncorrectPasswordException;
 import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
 import com.posts.request.PasswordCheck;
 import com.posts.request.PostEdit;
 import com.posts.request.PostWrite;
 import com.posts.response.PostDetail;
+import com.posts.response.PostSummary;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.PropertySource;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @RequiredArgsConstructor
+@PropertySource("classpath:application.properties")
 @Service
 public class PostService {
 
     private final PostRepository postRepository;
 
     private final PasswordEncoder passwordEncoder;
+
+    @Value("${post.amount}")
+    private int amountPerPage;
 
     /**
      * 글 작성
@@ -58,6 +71,25 @@ public class PostService {
     }
 
     /**
+     * 글 여러개 조회, id 내림차순으로 리턴
+     * @param currentPage 조회할 페이지 번호
+     * @return
+     */
+    @Transactional(readOnly = true)
+    public List<PostSummary> getList(int currentPage) {
+        Pageable pageable = PageRequest.of(currentPage - 1, amountPerPage, Sort.by("id").descending());
+        return postRepository.findAll(pageable)
+                .stream()
+                .map(post -> {
+                    return PostSummary.builder()
+                            .id(post.getId())
+                            .username(post.getUsername())
+                            .title(post.getTitle())
+                            .build();
+                }).toList();
+    }
+
+    /**
      * 글 수정
      * @param request 글 수정 dto
      * @return 수정한 글의 id
@@ -84,11 +116,13 @@ public class PostService {
     /**
      * 비밀번호 확인
      * @param passwordCheck 비밀번호 확인 dto
-     * @return 비밀번호가 일치하면 true, 일치하지 않으면 false 리턴
+     * @throws IncorrectPasswordException 비밀번호가 맞지 않을 시 예외 발생
      */
-    public boolean checkPassword(PasswordCheck passwordCheck) {
+    public void checkPassword(PasswordCheck passwordCheck) throws IncorrectPasswordException {
         Post post = findPost(passwordCheck.getId());
-        return passwordEncoder.matches(passwordCheck.getRawPassword(), post.getPassword());
+        if (!passwordEncoder.matches(passwordCheck.getRawPassword(), post.getPassword())) {
+            throw new IncorrectPasswordException();
+        }
     }
 
     /**

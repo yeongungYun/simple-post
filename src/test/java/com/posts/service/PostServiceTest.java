@@ -2,12 +2,14 @@ package com.posts.service;
 
 
 import com.posts.domain.Post;
+import com.posts.exception.IncorrectPasswordException;
 import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
 import com.posts.request.PasswordCheck;
 import com.posts.request.PostEdit;
 import com.posts.request.PostWrite;
 import com.posts.response.PostDetail;
+import com.posts.response.PostSummary;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
@@ -15,6 +17,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
+
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -87,6 +91,31 @@ class PostServiceTest {
         // expected
         assertThatThrownBy(() -> postService.get(1_000L))
                 .isInstanceOf(NotFoundPostException.class);
+    }
+
+    @Test
+    @DisplayName("글 여러개 조회")
+    void getList() {
+        // given
+        for (int i = 1; i <= 15; ++i) {
+            Post post = Post.builder()
+                    .username("test username " + i)
+                    .password(passwordEncoder.encode("password" + i))
+                    .title("test title " + i)
+                    .content("test content " + i)
+                    .build();
+            postRepository.save(post);
+        }
+        // when
+        List<PostSummary> list1 = postService.getList(1);
+        List<PostSummary> list2 = postService.getList(2);
+
+        // then
+        assertThat(list1.size()).isEqualTo(10);
+        assertThat(list2.size()).isEqualTo(5);
+
+        log.info("list1[0]={}", list1.get(0));
+        log.info("list2[0]={}", list2.get(0));
     }
 
     @Test
@@ -173,15 +202,12 @@ class PostServiceTest {
                 .build();
         postRepository.save(post);
 
-        // when
+        // expected
         PasswordCheck request = PasswordCheck.builder()
                 .id(post.getId())
                 .rawPassword("test password")
                 .build();
-        boolean result = postService.checkPassword(request);
-
-        // then
-        assertThat(result).isTrue();
+        postService.checkPassword(request);
     }
 
     @Test
@@ -201,9 +227,9 @@ class PostServiceTest {
                 .id(post.getId())
                 .rawPassword("incorrect password")
                 .build();
-        boolean result = postService.checkPassword(request);
 
         // then
-        assertThat(result).isFalse();
+        assertThatThrownBy(() -> postService.checkPassword(request))
+                .isInstanceOf(IncorrectPasswordException.class);
     }
 }
