@@ -3,15 +3,15 @@ package com.posts.service;
 import com.posts.domain.Post;
 import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
-import com.posts.request.PasswordCheckRequest;
+import com.posts.request.PasswordCheck;
 import com.posts.request.PostEdit;
 import com.posts.request.PostWrite;
 import com.posts.response.PostDetail;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -23,9 +23,11 @@ public class PostService {
     private final PasswordEncoder passwordEncoder;
 
     /**
+     * 글 작성
      * @param request 글 작성 요청 dto
-     * @return 저장된 게시글 id 리턴
+     * @return 저장된 게시글 id
      */
+    @Transactional
     public Long write(PostWrite request) {
         Post post = Post.builder()
                         .username(request.getUsername())
@@ -34,17 +36,19 @@ public class PostService {
                         .content(request.getContent())
                         .build();
         postRepository.save(post);
+        log.info("글 작성 id={}", post.getId());
         return post.getId();
     }
 
     /**
-     *
+     * 글 단건 조회
      * @param id 조회할 게시글의 id
-     * @return 조회할 게시글 응답 dto 리턴
+     * @return 조회 게시글 응답 dto
      */
+    @Transactional(readOnly = true)
     public PostDetail get(Long id) {
-        Post post = findEntity(id);
-
+        Post post = findPost(id);
+        log.info("글 조회 id={}", post.getId());
         return PostDetail.builder()
                 .id(post.getId())
                 .username(post.getUsername())
@@ -54,31 +58,47 @@ public class PostService {
     }
 
     /**
-     * @param checkRequest 비밀번호 확인 dto
-     * @return 비밀번호가 일치하면 true, 일치하지 않으면 false 리턴
+     * 글 수정
+     * @param request 글 수정 dto
+     * @return 수정한 글의 id
      */
-    public boolean checkPassword(PasswordCheckRequest checkRequest) {
-        Long postId = checkRequest.getPostId();
-        Post post = findEntity(postId);
-        return passwordEncoder.matches(checkRequest.getRawPassword(), post.getPassword());
-    }
-
-    /**
-     *
-     * @param id
-     * @return 조회한 엔티티 리턴
-     * @exception NotFoundPostException 해당 id의 게시글이 없으면 예외 발생
-     */
-    private Post findEntity(Long id) throws NotFoundPostException {
-        return postRepository.findById(id)
-                .orElseThrow(NotFoundPostException::new);
-    }
-
+    @Transactional
     public Long edit(PostEdit request) {
-        Post post = findEntity(request.getId());
+        Post post = findPost(request.getId());
         post.updateTitle(request.getTitle());
         post.updateContent(request.getContent());
 
         return post.getId();
+    }
+
+    /**
+     * 글 삭제
+     * @param id 삭제할 글의 id
+     */
+    @Transactional
+    public void delete(Long id) {
+        Post post = findPost(id);
+        postRepository.delete(post);
+    }
+
+    /**
+     * 비밀번호 확인
+     * @param passwordCheck 비밀번호 확인 dto
+     * @return 비밀번호가 일치하면 true, 일치하지 않으면 false 리턴
+     */
+    public boolean checkPassword(PasswordCheck passwordCheck) {
+        Post post = findPost(passwordCheck.getId());
+        return passwordEncoder.matches(passwordCheck.getRawPassword(), post.getPassword());
+    }
+
+    /**
+     * @param id
+     * @return 조회한 엔티티 리턴
+     * @exception NotFoundPostException 해당 id의 게시글이 없으면 예외 발생
+     */
+    private Post findPost(Long id) throws NotFoundPostException {
+        return postRepository.findById(id)
+                    .orElseThrow(NotFoundPostException::new);
+
     }
 }
