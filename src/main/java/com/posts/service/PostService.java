@@ -4,7 +4,6 @@ import com.posts.domain.Post;
 import com.posts.exception.IncorrectPasswordException;
 import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
-import com.posts.request.PasswordCheck;
 import com.posts.request.PostEdit;
 import com.posts.request.PostWrite;
 import com.posts.response.PostDetail;
@@ -95,8 +94,8 @@ public class PostService {
      * @return 수정한 글의 id
      */
     @Transactional
-    public Long edit(PostEdit request) {
-        Post post = findPost(request.getId());
+    public Long edit(Long id, PostEdit request) {
+        Post post = findPost(id);
         post.updateTitle(request.getTitle());
         post.updateContent(request.getContent());
 
@@ -115,12 +114,13 @@ public class PostService {
 
     /**
      * 비밀번호 확인
-     * @param passwordCheck 비밀번호 확인 dto
-     * @throws IncorrectPasswordException 비밀번호가 맞지 않을 시 예외 발생
+     * @param id 확인할 글 id
+     * @param rawPassword 입력한 비밀번호
+     * @throws IncorrectPasswordException 비밀번호가 일치하지 않을 시 예외 발생
      */
-    public void checkPassword(PasswordCheck passwordCheck) throws IncorrectPasswordException {
-        Post post = findPost(passwordCheck.getId());
-        if (!passwordEncoder.matches(passwordCheck.getRawPassword(), post.getPassword())) {
+    public void checkPassword(Long id, String rawPassword) throws IncorrectPasswordException {
+        Post post = findPost(id);
+        if (!passwordEncoder.matches(rawPassword, post.getPassword())) {
             throw new IncorrectPasswordException();
         }
     }

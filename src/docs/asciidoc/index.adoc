@@ -1,0 +1,92 @@
+= API
+:toc:
+
+== 글 단건 조회
+
+=== 요청
+include::{snippets}/post-inquiry/http-request.adoc[]
+include::{snippets}/post-inquiry/path-parameters.adoc[]
+
+=== 응답
+include::{snippets}/post-inquiry/http-response.adoc[]
+include::{snippets}/post-inquiry/response-fields.adoc[]
+=== 응답 - 예외
+- 해당 id의 글이 없을 경우
+include::{snippets}/post-inquiry-exception/http-response.adoc[]
+
+== 글 작성
+
+=== 요청
+include::{snippets}/post-write/http-request.adoc[]
+include::{snippets}/post-write/request-fields.adoc[]
+
+=== 응답
+include::{snippets}/post-write/http-response.adoc[]
+[cols=3*,options=header]
+|===
+|Path
+|Type
+|Description
+
+|id
+|Long
+|작성한 글의 id
+|===
+
+== 글 수정
+=== 요청
+include::{snippets}/post-update/http-request.adoc[]
+include::{snippets}/post-update/path-parameters.adoc[]
+
+=== 응답
+include::{snippets}/post-update/http-response.adoc[]
+[cols=3*,options=header]
+|===
+|Path
+|Type
+|Description
+
+|id
+|Long
+|수정한 글의 id
+|===
+
+=== 응답 - 예외
+- 해당 id의 글이 없을 경우
+include::{snippets}/post-update-exception/http-response.adoc[]
+
+== 글 삭제
+=== 요청
+include::{snippets}/post-delete/http-request.adoc[]
+include::{snippets}/post-delete/path-parameters.adoc[]
+
+=== 응답
+include::{snippets}/post-delete/http-response.adoc[]
+
+=== 응답 - 예외
+- 해당 id의 글이 없을 경우
+include::{snippets}/post-delete-exception/http-response.adoc[]
+
+== 비밀번호 확인
+=== 요청
+include::{snippets}/post-checkPassword/http-request.adoc[]
+include::{snippets}/post-checkPassword/path-parameters.adoc[]
+_path variable_
+[cols=3*,options=header]
+|===
+|Path
+|Type
+|Description
+
+|id
+|Long
+|수정한 글의 id
+|===
+
+=== 응답
+include::{snippets}/post-checkPassword/http-response.adoc[]
+=== 응답 - 예외
+- 해당 id의 글이 없을 경우
+include::{snippets}/post-checkPassword-notFoundPostException/http-response.adoc[]
+- 비밀번호가 일치하지 않을 경우
+include::{snippets}/post-checkPassword-incorrectPasswordException/http-response.adoc[]

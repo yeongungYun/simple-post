@@ -5,7 +5,6 @@ import com.posts.domain.Post;
 import com.posts.exception.IncorrectPasswordException;
 import com.posts.exception.NotFoundPostException;
 import com.posts.repository.PostRepository;
-import com.posts.request.PasswordCheck;
 import com.posts.request.PostEdit;
 import com.posts.request.PostWrite;
 import com.posts.response.PostDetail;
@@ -67,7 +66,7 @@ class PostServiceTest {
         // given
         Post post = Post.builder()
                 .username("test username")
-                .password(passwordEncoder.encode("test password"))
+                .password("test password")
                 .title("test title")
                 .content("test content")
                 .build();
@@ -100,7 +99,7 @@ class PostServiceTest {
         for (int i = 1; i <= 15; ++i) {
             Post post = Post.builder()
                     .username("test username " + i)
-                    .password(passwordEncoder.encode("password" + i))
+                    .password("password" + i)
                     .title("test title " + i)
                     .content("test content " + i)
                     .build();
@@ -124,20 +123,20 @@ class PostServiceTest {
         // given
         Post post = Post.builder()
                 .username("test username")
-                .password(passwordEncoder.encode("test password"))
+                .password("test password")
                 .title("test title")
                 .content("test content")
                 .build();
         postRepository.save(post);
 
+        long id = post.getId();
         PostEdit postEdit = PostEdit.builder()
-                .id(post.getId())
                 .title("edited title")
                 .content("edited content")
                 .build();
 
         // when
-        Long postId = postService.edit(postEdit);
+        Long postId = postService.edit(id, postEdit);
 
         // then
         Post editedPost = postRepository.findById(postId).get();
@@ -152,13 +151,12 @@ class PostServiceTest {
     void editException() {
         // given
         PostEdit postEdit = PostEdit.builder()
-                .id(1_000L)
                 .title("edited title")
                 .content("edited content")
                 .build();
 
         // expected
-        assertThatThrownBy(() -> postService.edit(postEdit))
+        assertThatThrownBy(() -> postService.edit(1_000L, postEdit))
                 .isInstanceOf(NotFoundPostException.class);
     }
 
@@ -168,7 +166,7 @@ class PostServiceTest {
         // given
         Post post = Post.builder()
                 .username("test username")
-                .password(passwordEncoder.encode("test password"))
+                .password("test password")
                 .title("test title")
                 .content("test content")
                 .build();
@@ -203,11 +201,9 @@ class PostServiceTest {
         postRepository.save(post);
 
         // expected
-        PasswordCheck request = PasswordCheck.builder()
-                .id(post.getId())
-                .rawPassword("test password")
-                .build();
-        postService.checkPassword(request);
+        Long id = post.getId();
+        String rawPassword = "test password";
+        postService.checkPassword(id, rawPassword);
     }
 
     @Test
@@ -223,13 +219,11 @@ class PostServiceTest {
         postRepository.save(post);
 
         // when
-        PasswordCheck request = PasswordCheck.builder()
-                .id(post.getId())
-                .rawPassword("incorrect password")
-                .build();
+        Long id = post.getId();
+        String rawPassword = "incorrect password";
 
         // then
-        assertThatThrownBy(() -> postService.checkPassword(request))
+        assertThatThrownBy(() -> postService.checkPassword(id, rawPassword))
                 .isInstanceOf(IncorrectPasswordException.class);
     }
 }
