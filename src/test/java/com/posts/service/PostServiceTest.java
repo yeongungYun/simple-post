@@ -18,6 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.assertj.core.api.Assertions.*;
 
@@ -225,5 +226,19 @@ class PostServiceTest {
         // then
         assertThatThrownBy(() -> postService.checkPassword(id, rawPassword))
                 .isInstanceOf(IncorrectPasswordException.class);
+    }
+
+    @Test
+    @DisplayName("id를 Map형식으로 변환")
+    void convertId() {
+        // given
+        Long id = 1_000L;
+
+        // when
+        Map<String, Long> result = postService.idConvertToJson(id);
+
+        // then
+        assertThat(result.get("id")).isEqualTo(id);
+
     }
 }

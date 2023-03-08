@@ -8,6 +8,7 @@ import com.posts.request.PostEdit;
 import com.posts.request.PostWrite;
 import com.posts.response.PostDetail;
 import com.posts.response.PostSummary;
+import com.posts.util.IdConverter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -31,11 +33,14 @@ public class PostService {
 
     private final PasswordEncoder passwordEncoder;
 
+    private final IdConverter<Long> idConverter;
+
     @Value("${post.amount}")
     private int amountPerPage;
 
     /**
      * 글 작성
+     *
      * @param request 글 작성 요청 dto
      * @return 저장된 게시글 id
      */
@@ -54,6 +59,7 @@ public class PostService {
 
     /**
      * 글 단건 조회
+     *
      * @param id 조회할 게시글의 id
      * @return 조회 게시글 응답 dto
      */
@@ -62,15 +68,16 @@ public class PostService {
         Post post = findPost(id);
         log.info("글 조회 id={}", post.getId());
         return PostDetail.builder()
-                .id(post.getId())
-                .username(post.getUsername())
-                .title(post.getTitle())
-                .content(post.getContent())
-                .build();
+                         .id(post.getId())
+                         .username(post.getUsername())
+                         .title(post.getTitle())
+                         .content(post.getContent())
+                         .build();
     }
 
     /**
      * 글 여러개 조회, id 내림차순으로 리턴
+     *
      * @param currentPage 조회할 페이지 번호
      * @return
      */
@@ -78,18 +85,19 @@ public class PostService {
     public List<PostSummary> getList(int currentPage) {
         Pageable pageable = PageRequest.of(currentPage - 1, amountPerPage, Sort.by("id").descending());
         return postRepository.findAll(pageable)
-                .stream()
-                .map(post -> {
-                    return PostSummary.builder()
-                            .id(post.getId())
-                            .username(post.getUsername())
-                            .title(post.getTitle())
-                            .build();
-                }).toList();
+                             .stream()
+                             .map(post -> {
+                                 return PostSummary.builder()
+                                                   .id(post.getId())
+                                                   .username(post.getUsername())
+                                                   .title(post.getTitle())
+                                                   .build();
+                             }).toList();
     }
 
     /**
      * 글 수정
+     *
      * @param request 글 수정 dto
      * @return 수정한 글의 id
      */
@@ -104,6 +112,7 @@ public class PostService {
 
     /**
      * 글 삭제
+     *
      * @param id 삭제할 글의 id
      */
     @Transactional
@@ -114,7 +123,8 @@ public class PostService {
 
     /**
      * 비밀번호 확인
-     * @param id 확인할 글 id
+     *
+     * @param id          확인할 글 id
      * @param rawPassword 입력한 비밀번호
      * @throws IncorrectPasswordException 비밀번호가 일치하지 않을 시 예외 발생
      */
@@ -125,14 +135,18 @@ public class PostService {
         }
     }
 
+    public Map<String, Long> idConvertToJson(Long id) {
+        return idConverter.convert(id);
+    }
+
     /**
      * @param id
      * @return 조회한 엔티티 리턴
-     * @exception NotFoundPostException 해당 id의 게시글이 없으면 예외 발생
+     * @throws NotFoundPostException 해당 id의 게시글이 없으면 예외 발생
      */
     private Post findPost(Long id) throws NotFoundPostException {
         return postRepository.findById(id)
-                    .orElseThrow(NotFoundPostException::new);
+                             .orElseThrow(NotFoundPostException::new);
 
     }
 }

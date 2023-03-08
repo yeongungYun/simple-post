@@ -1,6 +1,5 @@
 package com.posts.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.posts.domain.Post;
 import com.posts.repository.PostRepository;
@@ -30,6 +29,7 @@ import static org.springframework.restdocs.request.RequestDocumentation.*;
 import static org.springframework.restdocs.request.RequestDocumentation.pathParameters;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+@Deprecated
 @SpringBootTest
 @ExtendWith(RestDocumentationExtension.class)
 public class PostControllerDocTest {
@@ -48,20 +48,21 @@ public class PostControllerDocTest {
     @BeforeEach
     void setUp(WebApplicationContext webApplicationContext, RestDocumentationContextProvider restDocumentation) {
         this.mockMvc = MockMvcBuilders.webAppContextSetup(webApplicationContext)
-                                      .apply(documentationConfiguration(restDocumentation))
-                                      .build();
+            .apply(documentationConfiguration(restDocumentation))
+            .build();
     }
 
     @Test
+    @DisplayName("해당 페이지 조회")
     void getPostList() throws Exception {
         // given
         IntStream.rangeClosed(1, 15).forEach((i) -> {
             Post post = Post.builder()
-                            .username("username " + i)
-                            .password("password " + i)
-                            .title("title " + i)
-                            .content("content " + i)
-                            .build();
+                .username("username " + i)
+                .password("password " + i)
+                .title("title " + i)
+                .content("content " + i)
+                .build();
             postRepository.save(post);
         });
 
@@ -69,14 +70,17 @@ public class PostControllerDocTest {
         mockMvc.perform(get("/posts/{page}", 1)
                 .contentType(APPLICATION_JSON)
                 .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andDo(document("post-list",
-                        responseFields(
-                                fieldWithPath("[].id").description("게시글 id"),
-                                fieldWithPath("[].username").description("작성자"),
-                                fieldWithPath("[].title").description("제목"))
-                        )
-                );
+            .andExpect(status().isOk())
+            .andDo(document("post-list",
+                    pathParameters(
+                        parameterWithName("page").description("페이지 번호")
+                    ),
+                    responseFields(
+                        fieldWithPath("[].id").description("게시글 id"),
+                        fieldWithPath("[].username").description("작성자"),
+                        fieldWithPath("[].title").description("제목"))
+                )
+            );
     }
 
     @Test
@@ -84,25 +88,25 @@ public class PostControllerDocTest {
     void getInitialPostList() throws Exception {
         // given
         Post post = Post.builder()
-                        .username("username")
-                        .password("encodedPassword")
-                        .title("title")
-                        .content("content")
-                        .build();
+            .username("username")
+            .password("encodedPassword")
+            .title("title")
+            .content("content")
+            .build();
         postRepository.save(post);
 
         // expected
         mockMvc.perform(get("/posts/")
                 .contentType(APPLICATION_JSON)
                 .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andDo(document("post-list-initial",
-                               responseFields(
-                                       fieldWithPath("[].id").description("게시글 id"),
-                                       fieldWithPath("[].username").description("작성자"),
-                                       fieldWithPath("[].title").description("제목"))
-                        )
-                );
+            .andExpect(status().isOk())
+            .andDo(document("post-initialList",
+                    responseFields(
+                        fieldWithPath("[].id").description("게시글 id"),
+                        fieldWithPath("[].username").description("작성자"),
+                        fieldWithPath("[].title").description("제목"))
+                )
+            );
     }
 
     @Test
@@ -110,28 +114,28 @@ public class PostControllerDocTest {
     void getPost() throws Exception {
         // given
         Post post = Post.builder()
-                .username("username")
-                .password("encodedPassword")
-                .title("title")
-                .content("content")
-                .build();
+            .username("username")
+            .password("encodedPassword")
+            .title("title")
+            .content("content")
+            .build();
         postRepository.save(post);
 
         // expected
         mockMvc.perform(get("/posts/post/{id}", post.getId())
                 .contentType(APPLICATION_JSON)
                 .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andDo(document("post-inquiry",
-                        pathParameters(
-                                parameterWithName("id").description("게시글 id")),
-                                responseFields(
-                                        fieldWithPath("id").description("게시글 id"),
-                                        fieldWithPath("username").description("작성자"),
-                                        fieldWithPath("title").description("제목"),
-                                        fieldWithPath("content").description("내용"))
-                        )
-                );
+            .andExpect(status().isOk())
+            .andDo(document("post-inquiry",
+                    pathParameters(
+                        parameterWithName("id").description("게시글 id")),
+                    responseFields(
+                        fieldWithPath("id").description("게시글 id"),
+                        fieldWithPath("username").description("작성자"),
+                        fieldWithPath("title").description("제목"),
+                        fieldWithPath("content").description("내용"))
+                )
+            );
     }
 
     @Test
@@ -139,21 +143,21 @@ public class PostControllerDocTest {
     void getPostException() throws Exception {
         // expected
         mockMvc.perform(get("/posts/post/{id}", 1000)
-               .contentType(APPLICATION_JSON)
-               .accept(APPLICATION_JSON))
-               .andExpect(status().isNotFound())
-               .andDo(document("post-inquiry-exception"));
+                .contentType(APPLICATION_JSON)
+                .accept(APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andDo(document("post-inquiry-exception"));
     }
 
     @Test
     @DisplayName("글 작성")
     void writePost() throws Exception {
         PostWrite request = PostWrite.builder()
-                .username("username")
-                .rawPassword("password")
-                .title("title")
-                .content("content")
-                .build();
+            .username("username")
+            .rawPassword("password")
+            .title("title")
+            .content("content")
+            .build();
 
         String json = objectMapper.writeValueAsString(request);
 
@@ -162,15 +166,19 @@ public class PostControllerDocTest {
                 .contentType(APPLICATION_JSON)
                 .accept(APPLICATION_JSON)
                 .content(json))
-                .andExpect(status().isCreated())
-                .andDo(document("post-write",
-                        requestFields(
-                                fieldWithPath("username").description("작성자"),
-                                fieldWithPath("rawPassword").description("입력한 비밀번호"),
-                                fieldWithPath("title").description("제목"),
-                                fieldWithPath("content").description("내용"))
-                        )
-                );
+            .andExpect(status().isCreated())
+            .andDo(document("post-write",
+                    requestFields(
+                        fieldWithPath("username").description("작성자"),
+                        fieldWithPath("rawPassword").description("입력한 비밀번호"),
+                        fieldWithPath("title").description("제목"),
+                        fieldWithPath("content").description("내용")
+                    ),
+                    responseFields(
+                        fieldWithPath("id").description("작성한 글 id")
+                    )
+                )
+            );
     }
 
     @Test
@@ -178,36 +186,40 @@ public class PostControllerDocTest {
     void updatePost() throws Exception {
         // given
         Post post = Post.builder()
-                        .username("username")
-                        .password("encodedPassword")
-                        .title("title")
-                        .content("content")
-                        .build();
+            .username("username")
+            .password("encodedPassword")
+            .title("title")
+            .content("content")
+            .build();
         postRepository.save(post);
 
         long id = post.getId();
         PostEdit request = PostEdit.builder()
-                .title("update title")
-                .content("update content")
-                .build();
+            .title("update title")
+            .content("update content")
+            .build();
 
         String json = objectMapper.writeValueAsString(request);
 
         // expected
         mockMvc.perform(patch("/posts/post/{id}", id)
-               .contentType(APPLICATION_JSON)
-               .accept(APPLICATION_JSON)
-               .content(json))
-               .andExpect(status().isOk())
-               .andDo(document("post-update",
-                       pathParameters(
-                               parameterWithName("id").description("수정할 글의 id")
-                       ),
-                       requestFields(
-                               fieldWithPath("title").description("수정할 제목"),
-                               fieldWithPath("content").description("수정할 내용"))
-                       )
-               );
+                .contentType(APPLICATION_JSON)
+                .accept(APPLICATION_JSON)
+                .content(json))
+            .andExpect(status().isOk())
+            .andDo(document("post-update",
+                    pathParameters(
+                        parameterWithName("id").description("수정할 글의 id")
+                    ),
+                    requestFields(
+                        fieldWithPath("title").description("수정할 제목"),
+                        fieldWithPath("content").description("수정할 내용")
+                    ),
+                    responseFields(
+                        fieldWithPath("id").description("수정한 글 id")
+                    )
+                )
+            );
     }
 
     @Test
@@ -215,19 +227,19 @@ public class PostControllerDocTest {
     void updatePostException() throws Exception {
         // given
         PostEdit request = PostEdit.builder()
-                .title("update title")
-                .content("update content")
-                .build();
+            .title("update title")
+            .content("update content")
+            .build();
 
         String json = objectMapper.writeValueAsString(request);
 
         // expected
         mockMvc.perform(patch("/posts/post/{id}", 1_000L)
-               .contentType(APPLICATION_JSON)
-               .accept(APPLICATION_JSON)
-               .content(json))
-               .andExpect(status().isNotFound())
-               .andDo(document("post-update-exception"));
+                .contentType(APPLICATION_JSON)
+                .accept(APPLICATION_JSON)
+                .content(json))
+            .andExpect(status().isNotFound())
+            .andDo(document("post-update-exception"));
     }
 
     @Test
@@ -235,11 +247,11 @@ public class PostControllerDocTest {
     void deletePost() throws Exception {
         // given
         Post post = Post.builder()
-                        .username("username")
-                        .password("encodedPassword")
-                        .title("title")
-                        .content("content")
-                        .build();
+            .username("username")
+            .password("encodedPassword")
+            .title("title")
+            .content("content")
+            .build();
         postRepository.save(post);
         long id = post.getId();
 
@@ -247,12 +259,12 @@ public class PostControllerDocTest {
         mockMvc.perform(delete("/posts/post/{id}", id)
                 .contentType(APPLICATION_JSON)
                 .accept(APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andDo(document("post-delete",
-                        pathParameters(
-                                parameterWithName("id").description("삭제할 글의 id"))
-                        )
-                );
+            .andExpect(status().isOk())
+            .andDo(document("post-delete",
+                    pathParameters(
+                        parameterWithName("id").description("삭제할 글의 id"))
+                )
+            );
     }
 
     @Test
@@ -260,10 +272,10 @@ public class PostControllerDocTest {
     void deletePostException() throws Exception {
         // expected
         mockMvc.perform(delete("/posts/post/{id}", 1_000L)
-               .contentType(APPLICATION_JSON)
-               .accept(APPLICATION_JSON))
-               .andExpect(status().isNotFound())
-               .andDo(document("post-delete-exception"));
+                .contentType(APPLICATION_JSON)
+                .accept(APPLICATION_JSON))
+            .andExpect(status().isNotFound())
+            .andDo(document("post-delete-exception"));
     }
 
     @Test
@@ -271,11 +283,11 @@ public class PostControllerDocTest {
     void checkPassword() throws Exception {
         // given
         Post post = Post.builder()
-                .username("username")
-                .password(passwordEncoder.encode("password"))
-                .title("title")
-                .content("content")
-                .build();
+            .username("username")
+            .password(passwordEncoder.encode("password"))
+            .title("title")
+            .content("content")
+            .build();
         postRepository.save(post);
 
         Long id = post.getId();
@@ -286,12 +298,12 @@ public class PostControllerDocTest {
                 .contentType(APPLICATION_JSON)
                 .accept(APPLICATION_JSON)
                 .content(rawPassword))
-                .andExpect(status().isOk())
-                .andDo(document("post-checkPassword",
-                        pathParameters(
-                                parameterWithName("id").description("비밀번호를 확인할 글의 id"))
-                        )
-                );
+            .andExpect(status().isOk())
+            .andDo(document("post-checkPassword",
+                    pathParameters(
+                        parameterWithName("id").description("비밀번호를 확인할 글의 id"))
+                )
+            );
     }
 
     @Test
@@ -306,8 +318,8 @@ public class PostControllerDocTest {
                 .contentType(APPLICATION_JSON)
                 .accept(APPLICATION_JSON)
                 .content(rawPassword))
-                .andExpect(status().isNotFound())
-                .andDo(document("post-checkPassword-notFoundPostException"));
+            .andExpect(status().isNotFound())
+            .andDo(document("post-checkPassword-notFoundPostException"));
     }
 
     @Test
@@ -315,11 +327,11 @@ public class PostControllerDocTest {
     void checkPasswordException2() throws Exception {
         // given
         Post post = Post.builder()
-                        .username("username")
-                        .password(passwordEncoder.encode("password"))
-                        .title("title")
-                        .content("content")
-                        .build();
+            .username("username")
+            .password(passwordEncoder.encode("password"))
+            .title("title")
+            .content("content")
+            .build();
         postRepository.save(post);
 
         Long id = post.getId();
@@ -327,10 +339,10 @@ public class PostControllerDocTest {
 
         // expected
         mockMvc.perform(post("/posts/post/check/{id}", id)
-                       .contentType(APPLICATION_JSON)
-                       .accept(APPLICATION_JSON)
-                       .content(rawPassword))
-               .andExpect(status().isUnauthorized())
-                .andDo(document("post-checkPassword-incorrectPasswordException"));
+                .contentType(APPLICATION_JSON)
+                .accept(APPLICATION_JSON)
+                .content(rawPassword))
+            .andExpect(status().isUnauthorized())
+            .andDo(document("post-checkPassword-incorrectPasswordException"));
     }
 }

@@ -48,17 +48,17 @@ class PostControllerTest {
         // given
         IntStream.rangeClosed(1, 15).forEach((i) -> {
             Post post = Post.builder()
-                    .username("username " + i)
-                    .password("password " + i)
-                    .title("title " + i)
-                    .content("content " + i)
-                    .build();
+                            .username("username " + i)
+                            .password("password " + i)
+                            .title("title " + i)
+                            .content("content " + i)
+                            .build();
             postRepository.save(post);
         });
 
         // expected
         mockMvc.perform(get("/posts/{page}", 2)
-               .contentType(APPLICATION_JSON))
+                   .contentType(APPLICATION_JSON))
                .andExpect(jsonPath("$[0].username").value("username 5"))
                .andExpect(jsonPath("$[0].title").value("title 5"))
                .andExpect(jsonPath("$[1].username").value("username 4"))
@@ -69,11 +69,11 @@ class PostControllerTest {
                .andExpect(jsonPath("$[3].title").value("title 2"))
                .andExpect(jsonPath("$[4].username").value("username 1"))
                .andExpect(jsonPath("$[4].title").value("title 1"))
-                .andDo(print());
+               .andDo(print());
     }
 
     @Test
-    @DisplayName("url에 페이지 번호가 없는 메인 화면 - 1페이지 호출")
+    @DisplayName("/posts/ - 1페이지 호출")
     void getInitialList() throws Exception {
         // given
         IntStream.rangeClosed(1, 15).forEach((i) -> {
@@ -86,10 +86,10 @@ class PostControllerTest {
             postRepository.save(post);
         });
 
-        mockMvc.perform(get("/posts/" )
-                .contentType(APPLICATION_JSON))
-                .andExpect(jsonPath("$.length()").value(10))
-                .andDo(print());
+        mockMvc.perform(get("/posts/")
+                   .contentType(APPLICATION_JSON))
+               .andExpect(jsonPath("$.length()").value(10))
+               .andDo(print());
     }
 
     @Test
@@ -97,7 +97,7 @@ class PostControllerTest {
     void getNoList() throws Exception {
         // expected
         mockMvc.perform(get("/posts/{page}", 1000)
-               .contentType(APPLICATION_JSON))
+                   .contentType(APPLICATION_JSON))
                .andExpect(content().string("[]"))
                .andDo(print());
     }
@@ -116,7 +116,7 @@ class PostControllerTest {
 
         // expected
         mockMvc.perform(get("/posts/post/{id}", post.getId())
-               .contentType(APPLICATION_JSON))
+                   .contentType(APPLICATION_JSON))
                .andExpect(jsonPath("$.id").value(post.getId()))
                .andExpect(jsonPath("$.username").value(post.getUsername()))
                .andExpect(jsonPath("$.title").value(post.getTitle()))
@@ -129,9 +129,9 @@ class PostControllerTest {
     void getPostException() throws Exception {
         // expected
         mockMvc.perform(get("/posts/post/{id}", 1_000L)
-                .contentType(APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andDo(print());
+                   .contentType(APPLICATION_JSON))
+               .andExpect(status().isNotFound())
+               .andDo(print());
     }
 
     @Test
@@ -139,21 +139,21 @@ class PostControllerTest {
     void writePost() throws Exception {
         // given
         PostWrite request = PostWrite.builder()
-                        .username("test username")
-                        .rawPassword("test password")
-                        .title("test title")
-                        .content("test content")
-                        .build();
+                                     .username("test username")
+                                     .rawPassword("test password")
+                                     .title("test title")
+                                     .content("test content")
+                                     .build();
         String json = objectMapper.writeValueAsString(request);
 
         // expected
         mockMvc.perform(post("/posts/post")
-                .contentType(APPLICATION_JSON)
-                .content(json))
-                .andExpect(status().isCreated())
-                .andDo(print());
+                   .contentType(APPLICATION_JSON)
+                   .content(json))
+               .andExpect(status().isCreated())
+               .andDo(print());
     }
-    
+
     @Test
     @DisplayName("/posts/post/{id}에 PATCH 요청으로 글 수정")
     void updatePost() throws Exception {
@@ -168,17 +168,17 @@ class PostControllerTest {
 
         long id = post.getId();
         PostEdit request = PostEdit.builder()
-                .title("update title")
-                .content("update content")
-                .build();
+                                   .title("update title")
+                                   .content("update content")
+                                   .build();
         String json = objectMapper.writeValueAsString(request);
 
         // expected
         mockMvc.perform(patch("/posts/post/{id}", id)
-               .contentType(APPLICATION_JSON)
-               .content(json))
+                   .contentType(APPLICATION_JSON)
+                   .content(json))
                .andExpect(status().isOk())
-               .andExpect(content().string(String.valueOf(id)))
+               .andExpect(jsonPath("$.id").value(post.getId()))
                .andDo(print());
     }
 
@@ -195,8 +195,8 @@ class PostControllerTest {
 
         // expected
         mockMvc.perform(patch("/posts/post/{id}", id)
-               .contentType(APPLICATION_JSON)
-               .content(json))
+                   .contentType(APPLICATION_JSON)
+                   .content(json))
                .andExpect(status().isNotFound())
                .andDo(print());
     }
@@ -214,7 +214,7 @@ class PostControllerTest {
         postRepository.save(post);
 
         mockMvc.perform(delete("/posts/post/{id}", post.getId())
-               .contentType(APPLICATION_JSON))
+                   .contentType(APPLICATION_JSON))
                .andExpect(status().isOk())
                .andDo(print());
     }
@@ -224,7 +224,7 @@ class PostControllerTest {
     void deletePostException() throws Exception {
         // expected
         mockMvc.perform(delete("/posts/post/{id}", 1_000L)
-               .contentType(APPLICATION_JSON))
+                   .contentType(APPLICATION_JSON))
                .andExpect(status().isNotFound())
                .andDo(print());
     }
@@ -246,10 +246,10 @@ class PostControllerTest {
 
         // when
         mockMvc.perform(post("/posts/post/check/{id}", id)
-                .contentType(APPLICATION_JSON)
-                .content(rawPassword))
-                .andExpect(status().isOk())
-                .andDo(print());
+                   .contentType(APPLICATION_JSON)
+                   .content(rawPassword))
+               .andExpect(status().isOk())
+               .andDo(print());
     }
 
     @Test
@@ -269,8 +269,8 @@ class PostControllerTest {
 
         // when
         mockMvc.perform(post("/posts/post/check/{id}", id)
-               .contentType(APPLICATION_JSON)
-               .content(rawPassword))
+                   .contentType(APPLICATION_JSON)
+                   .content(rawPassword))
                .andExpect(status().isUnauthorized())
                .andDo(print());
     }
