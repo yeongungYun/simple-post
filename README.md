@@ -29,4 +29,3 @@ Java와 Spring Boot를 사용하여 CRUD가 가능한 간단한 게시판 API를
 |password|비밀번호|      |
 |  title |  제목 |      |
 |content |  내용 |      |
-|--------|-------|------|
