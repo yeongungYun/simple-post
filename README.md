@@ -29,8 +29,3 @@ Java와 Spring Boot를 사용하여 CRUD가 가능한 간단한 게시판 API를
 |password|비밀번호|Not Null|
 |  title |  제목 |Not Null|
 |content |  내용 |Not Null|
-
-## API
-|URI|Method|요청|응답|설명|
-|:-:|:-:|:-:|:-:|:-:|
-|/posts/post|POST|작성한 글|작성한 글의 id|글 작성 API
