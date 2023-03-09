@@ -23,9 +23,9 @@ Java와 Spring Boot를 사용하여 CRUD가 가능한 간단한 게시판 API를
 ## ERD
 ### Post
 |속성|설명|제약조건|
-|  :-:   |  :-:  |:----:|
-|   id   |글 번호 |기본 키|
-|username| 작성자 |      |
-|password|비밀번호|      |
-|  title |  제목 |      |
-|content |  내용 |      |
+|  :-:   |  :-:  | :----: |
+|   id   |글 번호 |기본 키 |
+|username| 작성자 |Not Null|
+|password|비밀번호|Not Null|
+|  title |  제목 |Not Null|
+|content |  내용 |Not Null|
