@@ -112,7 +112,6 @@ public class PostService {
 
     /**
      * 글 삭제
-     *
      * @param id 삭제할 글의 id
      */
     @Transactional
@@ -123,7 +122,6 @@ public class PostService {
 
     /**
      * 비밀번호 확인
-     *
      * @param id          확인할 글 id
      * @param rawPassword 입력한 비밀번호
      * @throws IncorrectPasswordException 비밀번호가 일치하지 않을 시 예외 발생
